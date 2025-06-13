@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+ <meta charset="UTF-8">
+ <title>매운탕 운세</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; font-family: 'Noto Sans KR', sans-serif; }
+
+  .screen {
+   width: 100%;
+   height: 100vh;
+   position: absolute;
+   top: 0;
+   left: 0;
+   transition: opacity 0.5s ease;
+  }
+
+  .hidden {
+   opacity: 0;
+   pointer-events: none;
+  }
+
+  #start-screen {
+   background-image: url('https://i.imgur.com/KJcyrnD.png');
+   background-size: contain;
+   background-position: center;
+   background-repeat: no-repeat;
+  }
+
+  .start-button {
+   position: absolute;
+   bottom: 10%;
+   left: 50%;
+   transform: translateX(-50%);
+   background: none;
+   border: none;
+   cursor: pointer;
+  }
+
+  .start-button img {
+   width: 160px;
+  }
+
+  #form-screen {
+   background-image: url('https://i.imgur.com/eeL7dnT.png');
+   background-size: contain;
+   background-position: center;
+   background-repeat: no-repeat;
+   display: flex;
+   align-items: flex-start;
+   justify-content: center;
+   padding-top: 200px;
+  }
+
+  .form-wrapper {
+   background: rgba(255, 255, 255, 0.9);
+   padding: 40px 30px 60px;
+   border-radius: 16px;
+   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+   max-width: 400px;
+   width: 100%;
+   text-align: center;
+   position: relative;
+  }
+
+  .form-wrapper input,
+  .form-wrapper select {
+   width: 100%;
+   padding: 10px;
+   margin-top: 12px;
+   font-size: 16px;
+   border: 1px solid #ccc;
+   border-radius: 8px;
+  }
+
+  .mbti-row {
+   display: flex;
+   justify-content: space-between;
+   gap: 8px;
+   margin-top: 12px;
+  }
+
+  .mbti-row select {
+   flex: 1;
+   margin-top: 0;
+  }
+
+  .soup-image {
+   width: 100%;
+   max-width: 200px;
+   margin: 0 auto 20px;
+  }
+
+  .next-button {
+   position: absolute;
+   bottom: -70px;
+   left: 50%;
+   transform: translateX(-50%);
+   background: none;
+   border: none;
+   cursor: pointer;
+  }
+
+  .next-button img {
+   width: 140px;
+  }
+
+  @keyframes wobble {
+   0%, 100% { transform: rotate(0deg); }
+   25% { transform: rotate(3deg); }
+   50% { transform: rotate(-3deg); }
+   75% { transform: rotate(2deg); }
+  }
+
+  @keyframes dots {
+   0% { content: ''; }
+   33% { content: '.'; }
+   66% { content: '..'; }
+   100% { content: '...'; }
+  }
+
+  #loading-screen {
+   background-image: url('https://i.imgur.com/QKZFney.png');
+   background-size: cover;
+   background-position: center;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   padding-bottom: 80px;
+   font-size: 28px;
+   color: #000;
+   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  }
+
+  .loading-pot {
+   width: 200px;
+   height: 200px;
+   animation: wobble 1.5s infinite;
+  }
+
+  .loading-text::after {
+   content: '...';
+   animation: dots 1.5s steps(3, end) infinite;
+  }
+    
+    /* ✨ 수정된 부분: 두 화면에 동일한 배경 적용 */
+    #result-screen, #detail-fortune-screen {
+        background-image: url('https://i.imgur.com/QKZFney.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .result-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 60px 20px 200px;
+        box-sizing: border-box;
+    }
+
+    .result-wrapper img {
+        max-width: 600px; 
+        width: 100%;    
+        margin: 20px 0;
+        display: block;
+    }
+   
+  #scoreHeader {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 20px;
+        color: #222;
+    }
+
+  .button-group {
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+        text-align: center;
+    }
+
+    .fortune-button img {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .half-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .half-button {
+        flex: 1;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .half-button img {
+        width: 100%;
+    }
+
+    /* ✨ 새로 추가된 버튼 스타일 */
+    .back-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      width: 50%; /* 버튼 크기 */
+      margin: 0 auto;
+      display: block;
+    }
+    .back-button img {
+      width: 100%;
+    }
+ </style>
+</head>
+<body>
+ <div id="start-screen" class="screen">
+  <button class="start-button" onclick="showForm()">
+   <img src="https://i.imgur.com/QHB2e8H.png" alt="시작하기 버튼">
+  </button>
+ </div>
+
+ <div id="form-screen" class="screen hidden">
+  <div class="form-wrapper">
+   <img id="soupImage" class="soup-image" src="https://i.imgur.com/81360XN.png" alt="매운탕 이미지">
+   <input type="text" placeholder="이름" id="name" oninput="updateSoup()">
+   <div style="display: flex; gap: 8px; margin-top: 12px;">
+    <input type="number" id="birthYear" placeholder="년도" min="1900" max="2100" oninput="updateSoup()">
+    <input type="number" id="birthMonth" placeholder="월" min="1" max="12" oninput="updateSoup()">
+    <input type="number" id="birthDay" placeholder="일" min="1" max="31" oninput="updateSoup()">
+   </div>
+   <select id="gender" onchange="updateSoup()">
+    <option value="">성별 선택</option>
+    <option value="male">남성</option>
+    <option value="female">여성</option>
+   </select>
+
+   <div class="mbti-row">
+    <select id="mbti1" onchange="updateSoup()">
+     <option value="">E/I</option> <option value="E">E</option> <option value="I">I</option>
+    </select>
+    <select id="mbti2" onchange="updateSoup()">
+     <option value="">S/N</option> <option value="S">S</option> <option value="N">N</option>
+    </select>
+    <select id="mbti3" onchange="updateSoup()">
+     <option value="">T/F</option> <option value="T">T</option> <option value="F">F</option>
+    </select>
+    <select id="mbti4" onchange="updateSoup()">
+     <option value="">J/P</option> <option value="J">J</option> <option value="P">P</option>
+    </select>
+   </div>
+
+   <select id="blood" onchange="updateSoup()">
+    <option value="">혈액형 선택</option> <option value="A">A형</option> <option value="B">B형</option> <option value="O">O형</option> <option value="AB">AB형</option>
+   </select>
+   <div style="height: 40px;"></div>
+
+   <button class="next-button" id="nextButton" onclick="showLoading()" disabled>
+    <img src="https://i.imgur.com/za9SWwx.png" alt="결과보기 버튼">
+   </button>
+  </div>
+ </div>
+
+ <div id="loading-screen" class="screen hidden">
+  <img src="https://i.imgur.com/PAf8807.png" alt="매운탕" class="loading-pot">
+  <div class="loading-text">열심히 매운탕을 끓이는 중</div>
+ </div>
+
+ <div id="result-screen" class="screen hidden">
+    <div class="result-wrapper">
+      <div id="scoreHeader" style="font-size: 25px; text-align: center; margin-top: 10px;"></div>
+      <img id="scoreImage" src="" alt="점수 이미지">
+      <img id="soupResultImage" src="" alt="결과 매운탕 이미지">
+      <div id="scoreText" style="max-width: 600px; background: white; border-radius: 16px; padding: 24px; font-size: 20px; line-height: 1.6; color: #333; white-space: pre-line; text-align: center; font-weight: bold;"></div>
+      <img id="zodiacImage" src="" alt="띠 운세 이미지">
+      <img id="bloodImage" src="" alt="혈액형 장소 이미지">
+      <img id="mbtiImage" src="" alt="MBTI 궁합 이미지" style="margin-top: 30px;">
+      <img id="zodiacSignImage" src="" alt="별자리 이미지" style="margin-top: 30px;">
+      <div class="button-group">
+       <button class="fortune-button" onclick="goToDetailPage()">
+        <img src="https://i.imgur.com/S3WdPJu.png" alt="종합운세보기">
+       </button>
+       <div class="half-buttons">
+        <button class="half-button" onclick="copyLink()">
+         <img src="https://i.imgur.com/4OaBQ1e.png" alt="공유하기">
+        </button>
+        <button class="half-button" onclick="goToStart()">
+         <img src="https://i.imgur.com/ZApsGOJ.png" alt="처음으로">
+        </button>
+       </div>
+      </div>
+    </div>
+</div>
+
+<!-- ✨ 수정된 HTML 구조 -->
+<div id="detail-fortune-screen" class="screen hidden">
+  <div class="result-wrapper"> 
+    <img id="detailFortuneImage" src="" alt="종합 운세 결과">
+    <div class="button-group">
+        <button class="back-button" onclick="hideDetailFortune()">
+            <img src="https://i.imgur.com/SFlrUYd.png" alt="뒤로가기">
+        </button>
+    </div>
+  </div>
+</div>
+
+<div id="copy-alert" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: #e5e5e5; color: black; padding: 12px 24px; border-radius: 30px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999; transition: opacity 0.5s ease;">
+    운세 매운탕 링크가 복사되었습니다! 붙여넣기로 친구에게 공유해보세요!
+</div>
+  
+<script>
+    // 스크립트 코드는 이전과 동일하게 유지됩니다.
+    // ... (이하 스크립트 코드 생략) ...
+    function showForm() {
+   document.getElementById('start-screen').classList.add('hidden');
+   document.getElementById('form-screen').classList.remove('hidden');
+  }
+
+  function updateSoup() {
+   let filled = 0;
+   if (document.getElementById('name').value.trim() !== '') filled++;
+   if (document.getElementById('birthYear').value && document.getElementById('birthMonth').value && document.getElementById('birthDay').value) filled++;
+   if (document.getElementById('gender').value !== '') filled++;
+
+   let mbtiCount = 0;
+   if (document.getElementById('mbti1').value !== '') mbtiCount++;
+   if (document.getElementById('mbti2').value !== '') mbtiCount++;
+   if (document.getElementById('mbti3').value !== '') mbtiCount++;
+   if (document.getElementById('mbti4').value !== '') mbtiCount++;
+   if (mbtiCount > 0) filled++;
+
+   if (document.getElementById('blood').value !== '') filled++;
+
+   const soupImage = document.getElementById('soupImage');
+   const imageStages = [
+    'https://i.imgur.com/81360XN.png',
+    'https://i.imgur.com/KMxnq4g.png',
+    'https://i.imgur.com/PJdggz2.png',
+    'https://i.imgur.com/AbuDpKn.png',
+    'https://i.imgur.com/l7fomfU.png'
+   ];
+   soupImage.src = imageStages[Math.min(imageStages.length - 1, Math.max(0, filled - 1))];
+
+   const nextButton = document.getElementById('nextButton');
+   nextButton.disabled = filled !== 5;
+   nextButton.style.opacity = filled === 5 ? 1 : 0.5;
+   nextButton.style.pointerEvents = filled === 5 ? 'auto' : 'none';
+  }
+
+  function showLoading() {
+   document.getElementById('form-screen').classList.add('hidden');
+   const loading = document.getElementById('loading-screen');
+   loading.classList.remove('hidden');
+
+   setTimeout(() => {
+    calculateScore();
+    loading.classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+   }, 3000);
+  }
+
+  function calculateScore() {
+   const name = document.getElementById('name').value.trim();
+   const scoreHeader = document.getElementById('scoreHeader');
+   scoreHeader.innerHTML = `<strong>${name}</strong>님의 매운탕 점수는...`;
+   const birthYear = document.getElementById('birthYear').value;
+   const birthMonth = document.getElementById('birthMonth').value;
+   const birthDay = document.getElementById('birthDay').value;
+   const birthValue = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+   if (!birthYear || !birthMonth || !birthDay) return;
+
+   let hash = 0;
+   for (let i = 0; i < birthValue.length; i++) {
+    hash += birthValue.charCodeAt(i) * (i + 1);
+   }
+
+   const today = new Date();
+   hash += today.getDate() * 17 + today.getMonth() * 31;
+
+   const scoreIndex = hash % 10;
+
+   const scoreImages = [
+    'https://i.imgur.com/BiDZHld.png', 'https://i.imgur.com/hgCsMWa.png', 'https://i.imgur.com/JAa3mjg.png', 'https://i.imgur.com/pmvnFs7.png', 'https://i.imgur.com/ALMg9XA.png',
+    'https://i.imgur.com/LrnKHsx.png', 'https://i.imgur.com/OIfejOR.png', 'https://i.imgur.com/sVwg1e4.png', 'https://i.imgur.com/ydC8fLx.png', 'https://i.imgur.com/XwKaEeD.png'
+   ];
+
+   const soupImages = [
+    'https://i.imgur.com/XTEYKOq.png', 'https://i.imgur.com/XTEYKOq.png', 'https://i.imgur.com/FIhB1oR.png', 'https://i.imgur.com/FIhB1oR.png', 'https://i.imgur.com/78f3FEJ.png',
+    'https://i.imgur.com/78f3FEJ.png', 'https://i.imgur.com/HrzP2EW.jpeg', 'https://i.imgur.com/HrzP2EW.jpeg', 'https://i.imgur.com/MwrtUwI.png', 'https://i.imgur.com/MwrtUwI.png'
+   ];
+  // 점수별 멘트 출력
+   const scoreDescriptions = [
+    '타버린 매운탕입니다.\n\n불 조절을 못한 탓에 바닥까지 눌러붙었어요.\n감정 기복이 심해질 수 있고, 사소한 일에도 과민하게 반응할 수 있어요.\n\n오늘은 무리한 도전보다 마음을 진정시키는 시간이 필요합니다.\n애써 끓인 국물이 쏟아지는 것처럼 기대했던 일에서 아쉬움이 생길 수 있어요.\n\n하지만 실수도 배움의 일부입니다.\n지금은 다시 재료를 준비하고 불을 천천히 올릴 때예요.\n오늘 하루, 무언가를 끓이기보다 식히는 데 집중하세요.',
+    '간이 빠진 맹탕입니다.\n\n애매한 상황과 모호한 반응 속에서 당신의 열정이 제대로 발휘되지 못할 수 있어요.\n시작은 했지만 확신이 부족한 흐름입니다.\n\n오늘은 억지로 국물을 끓이려 하기보단 재료를 정리하고 준비하는 마음으로\n자신의 상태를 점검하는 게 좋아요.\n\n소금 한 꼬집으로 맛이 달라지듯\n아주 작은 행동 하나가 전체 흐름을 바꿀 수 있다는 걸 기억하세요.',
+    '덜 끓인 매운탕입니다.\n\n육수는 내렸지만, 깊은 맛이 부족해요.\n당신의 아이디어나 감정이 아직 주변과 어우러지지 않고 겉도는 느낌입니다.\n\n무리해서 완성하려 하지 말고 조금 더 시간을 두고 천천히 바라보세요.\n끓는 시간을 존중하는 것도 맛있는 매운탕의 필수 조건이니까요.\n\n오늘 하루는 속도를 늦추고 경청하는 태도가 큰 도움이 됩니다.',
+    '맛이 균형을 잃은 매운탕입니다.\n\n너무 맵거나, 너무 싱거운 감정의 기복이 느껴지는 하루입니다.\n사람들과의 소통에서 오해가 생기기 쉬우니 단어 하나, 표정 하나에도 신경을 써야 해요.\n\n지금 필요한 건 다시 간을 맞추는 것.\n내 감정과 타인의 온도를 조절하면서 적절한 거리를 유지해보세요.\n\n한 번 불어난 면처럼 돌이키기 어려운 실수는 미리 막는 게 가장 좋습니다.',
+    '기본은 된 매운탕입니다.\n\n큰 문제는 없지만 확신이 서지 않는 하루가 될 수 있어요.\n적당한 맛, 적당한 열기 속에서 특별한 감흥은 느끼기 어려울 수 있어요.\n\n하지만 이런 날이 오히려 ‘숨 고르기’에 좋습니다.\n내면을 정비하고, 주위와의 관계를 조용히 돌아보는 시간을 가져보세요.\n\n오늘의 국물은 평범하지만 그 안에 다음을 위한 가능성이 숨어 있어요.',
+    '꽤 괜찮은 국물입니다.\n\n중간 불에서 은근히 끓여낸 매운탕처럼\n당신의 하루도 무던하게, 그러나 알차게 흘러갑니다.\n\n사람들과의 교류도 무난하고\n작은 성과에 만족할 수 있는 여유가 생겨요.\n\n다만, 그저 그런 하루로 만들지 않으려면\n당신의 ‘매운 맛’을 보여줄 필요도 있어요.\n자신의 색깔을 드러내는 일에 망설이지 마세요.',
+    '국물과 재료가 조화를 이룹니다.\n\n깊이 있고 따뜻한 하루예요.\n대화는 자연스럽고, 해야 할 일도 큰 무리 없이 잘 흘러갑니다.\n\n당신의 진심이 전달되기 좋은 날이니\n중요한 이야기나 고백을 하기에도 나쁘지 않아요.\n\n다만, 너무 서두르면 매운탕도 탈 수 있죠.\n하루를 음미하듯 천천히 살아보세요.\n생각보다 많은 위로와 힘을 얻을 수 있을 거예요.',
+    '완벽히 균형을 갖춘 매운탕입니다.\n\n진한 육수처럼 당신의 내면은 단단하며,\n다채로운 재료들이 어우러지듯 오늘 하루는 사람들과의 관계 속에서\n서로의 차이를 인정하고 조화를 이루게 됩니다.\n\n불이 알맞게 오른 버너처럼 당신의 열정도 과하지도 모자라지도 않으니,\n중요한 일이나 도전에도 편안한 흐름 속에서 집중력을 유지할 수 있겠네요.\n\n다만, 간을 마지막까지 놓치지 않는 것이 중요한 것처럼\n작은 디테일도 소홀히 하지 마세요.\n그 섬세함이 오늘 하루를 더 깊고 맛있게 만들어줄 거예요.',
+    '불맛이 살아있는 매운탕입니다.\n\n에너지와 집중력이 절정에 이르는 날이에요.\n무엇이든 시작하기 좋은 타이밍이니 망설였던 일을 꺼내보세요.\n\n사람들과의 협업도 잘 맞고, 당신의 매력과 주도성이 돋보입니다.\n다만, 너무 빠르게 끓이면 재료가 흐트러질 수 있어요.\n\n속도보다 균형을 기억하세요.\n오늘의 국물엔 강한 힘이 숨어 있습니다.',
+    '궁극의 매운탕, 전설이 끓고 있습니다.\n\n육수, 양념, 불 조절, 타이밍까지 모든 것이 완벽하게 맞아떨어지는 하루입니다.\n\n당신이 중심이 되어 흐름을 이끌고,\n무언가를 성취하거나 전환점이 되는 일이 생길 수 있어요.\n\n사람들도 당신에게 이끌리고\n의견이나 제안이 자연스럽게 받아들여질 거예요.\n\n오늘의 매운탕은 오래 기억될 맛입니다.\n그 뜨거운 가능성을 망설이지 말고\n한입 가득 담아내세요.'
+   ];
+
+   document.getElementById('scoreImage').src = scoreImages[scoreIndex];
+   document.getElementById('soupResultImage').src = soupImages[scoreIndex];
+   document.getElementById('scoreText').textContent = scoreDescriptions[scoreIndex];
+    
+  // 띠 이미지 출력
+   const zodiacs = { 0: "https://i.imgur.com/H2xSfiv.png", 1: "https://i.imgur.com/hD8hnjn.png", 2: "https://i.imgur.com/BvEZ2TX.png", 3: "https://i.imgur.com/5WVQIAX.png", 4: "https://i.imgur.com/A7sTujw.png", 5: "https://i.imgur.com/eJwRnFm.png", 6: "https://i.imgur.com/L9w4pOK.png", 7: "https://i.imgur.com/DRfhiRQ.png", 8: "https://i.imgur.com/mSratlK.png", 9: "https://i.imgur.com/fq6vJqZ.png", 10: "https://i.imgur.com/M0sggD1.png", 11: "https://i.imgur.com/iH38v5C.png" };
+    const zodiacIndex = birthYear % 12;
+    document.getElementById('zodiacImage').src = zodiacs[zodiacIndex];
+
+  // 혈액형 이미지 출력
+    const bloodType = document.getElementById('blood').value;
+    const bloodImages = { A: "https://i.imgur.com/DKvqzPy.png", B: "https://i.imgur.com/DbRqkIO.png", AB: "https://i.imgur.com/kkwiQnI.png", O: "https://i.imgur.com/YK2Oy2S.png" };
+    document.getElementById('bloodImage').src = bloodImages[bloodType] || "";
+
+  // MBTI 이미지 출력
+   const mbtiImages = {
+    ISTJ: "https://i.imgur.com/kcebmv4.png", ISFJ: "https://i.imgur.com/EV6TJta.png", INFJ: "https://i.imgur.com/l0xx21U.png", INTJ: "https://i.imgur.com/HlUHL7G.png",
+    ISTP: "https://i.imgur.com/YujV7ZC.png", ISFP: "https://i.imgur.com/uMTBuL1.png", INFP: "https://i.imgur.com/e6boBJP.png", INTP: "https://i.imgur.com/AaX62qU.png",
+    ESTP: "https://i.imgur.com/Meubcnk.png", ESFP: "https://i.imgur.com/kEhpEqD.png", ENFP: "https://i.imgur.com/4k2vDo0.png", ENTP: "https://i.imgur.com/T8fTb9Y.png",
+    ESTJ: "https://i.imgur.com/urFyHAT.png", ESFJ: "https://i.imgur.com/0Vl34CQ.png", ENFJ: "https://i.imgur.com/dwoBBeN.png", ENTJ: "https://i.imgur.com/6f3kXSS.png"
+   };
+   const mbti = document.getElementById('mbti1').value + document.getElementById('mbti2').value + document.getElementById('mbti3').value + document.getElementById('mbti4').value;
+   document.getElementById('mbtiImage').src = mbtiImages[mbti] || "";
+
+ // 별자리 판단 함수
+  function getZodiacSign(month, day) {
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "물병";
+    if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return "물고기";
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "양";
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "황소";
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return "쌍둥이";
+    if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return "게";
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "사자";
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 23)) return "처녀";
+    if ((month === 9 && day >= 24) || (month === 10 && day <= 22)) return "천칭";
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 22)) return "전갈";
+    if ((month === 11 && day >= 23) || (month === 12 && day <= 24)) return "사수";
+    return "염소";
+  }
+
+ // 별자리 이미지 출력
+   const zodiacSignImages = {
+    물병: "https://i.imgur.com/j4Ov0F2.png", 물고기: "https://i.imgur.com/Plyuk6y.png", 양: "https://i.imgur.com/lY3fzos.png", 황소: "https://i.imgur.com/MRmWWyP.png",
+    쌍둥이: "https://i.imgur.com/CBl4g7B.png", 게: "https://i.imgur.com/bHacOXN.png", 사자: "https://i.imgur.com/3jTaPc8.png", 처녀: "https://i.imgur.com/7Alqltx.png",
+    천칭: "https://i.imgur.com/UBkf65V.png", 전갈: "https://i.imgur.com/FyQUB3z.png", 사수: "https://i.imgur.com/FQmUguk.png", 염소: "https://i.imgur.com/3NyUPp7.png"
+   };
+    const m = parseInt(birthMonth, 10);
+    const d = parseInt(birthDay, 10);
+    const sign = getZodiacSign(m, d);
+    document.getElementById('zodiacSignImage').src = zodiacSignImages[sign] || "";
+  }
+
+function goToDetailPage() {
+  const detailImages = [
+    'https://i.imgur.com/e0AqlVy.png', 'https://i.imgur.com/wzRu1QC.png',
+    'https://i.imgur.com/0UISEw4.png', 'https://i.imgur.com/Eep0vSV.png'
+  ];
+  const randomIndex = Math.floor(Math.random() * detailImages.length);
+  document.getElementById('detailFortuneImage').src = detailImages[randomIndex];
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('detail-fortune-screen').classList.remove('hidden');
+}
+
+function copyLink() {
+ const url = window.location.href;
+ navigator.clipboard.writeText(url).then(() => {
+  const alertBox = document.getElementById('copy-alert');
+  alertBox.style.display = 'block';
+  alertBox.style.opacity = '1';
+  setTimeout(() => { alertBox.style.opacity = '0'; }, 2500);
+  setTimeout(() => { alertBox.style.display = 'none'; }, 3000);
+ });
+}
+
+function goToStart() {
+ document.getElementById('result-screen').classList.add('hidden');
+ document.getElementById('start-screen').classList.remove('hidden');
+ document.getElementById('name').value = "";
+ document.getElementById('birthYear').value = "";
+ document.getElementById('birthMonth').value = "";
+ document.getElementById('birthDay').value = "";
+ document.getElementById('gender').value = "";
+ document.getElementById('mbti1').value = "";
+ document.getElementById('mbti2').value = "";
+ document.getElementById('mbti3').value = "";
+ document.getElementById('mbti4').value = "";
+ document.getElementById('blood').value = "";
+ updateSoup();
+}
+
+function hideDetailFortune() {
+  document.getElementById('detail-fortune-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
